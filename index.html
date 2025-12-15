@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>BlixAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlixAI</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;font-family:'Roboto',sans-serif}
-body{margin:0;height:100vh;display:flex;flex-direction:column;background:#fff;color:#000;transition:.3s}
+*{box-sizing:border-box;font-family:'Roboto',sans-serif;margin:0;padding:0}
+body{display:flex;flex-direction:column;height:100vh;background:#fff;color:#000;transition:0.3s}
 body.dark{background:#121212;color:#fff}
 #top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px}
-#logo{height:80px} /* Logo size */
+#logo{height:80px}
 #dark-toggle{padding:8px 14px;border-radius:20px;border:none;background:#000;color:#fff;cursor:pointer}
 body.dark #dark-toggle{background:#fff;color:#000}
 #welcome{font-size:28px;font-weight:700;padding:20px}
@@ -33,7 +33,8 @@ body.dark select{background:#2c2c2c;color:#fff}
   <img id="logo" src="https://uploads.onecompiler.io/446bh8s9g/447prm8ma/BlixAI-removebg-preview%20(1).png" alt="BlixAI Logo">
   <button id="dark-toggle">🌙</button>
 </div>
-<div id="welcome">What would you like to talk about?</div>
+
+<div id="welcome"><b>What would you like to talk about?</b></div>
 <div id="chat"></div>
 
 <div id="input-bar">
@@ -41,73 +42,98 @@ body.dark select{background:#2c2c2c;color:#fff}
     <option value="nano">BlixAI-Nano</option>
     <option value="3m">BlixAI3M</option>
   </select>
-  <input id="input" placeholder="Type a message…" />
+  <input id="input" placeholder="Type a message…"/>
   <button id="send">Send</button>
 </div>
 
 <script>
-const chat=document.getElementById('chat');
-const input=document.getElementById('input');
-const send=document.getElementById('send');
-const welcome=document.getElementById('welcome');
-const model=document.getElementById('model');
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const send = document.getElementById('send');
+const welcome = document.getElementById('welcome');
+const model = document.getElementById('model');
 
-(function autoTheme(){const h=new Date().getHours();if(h>=20||h<8)document.body.classList.add('dark')})();
+// Time-based dark mode
+(function autoTheme(){
+    const h=new Date().getHours();
+    if(h>=20||h<8) document.body.classList.add('dark');
+})();
 
-document.getElementById('dark-toggle').onclick=()=>document.body.classList.toggle('dark');
+document.getElementById('dark-toggle').onclick = () => document.body.classList.toggle('dark');
 
-function addMessage(text,who){
-  if(welcome) welcome.style.display='none';
-  const div=document.createElement('div');
-  div.className='message '+who;
-  div.innerHTML=text;
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
-  return div;
+function addMessage(text, who) {
+    if(welcome) welcome.style.display = 'none';
+    const div = document.createElement('div');
+    div.className = 'message ' + who;
+    div.innerHTML = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
 }
 
-function isMath(t){return /^[0-9+\-*/x().^\s]+$/i.test(t)}
-function solveMath(t){try{return eval(t.replace(/x/gi,'*').replace(/\^/g,'**'))}catch{return null}}
+// Math detection
+function isMath(text){
+    return /^[0-9x+\\-*/().^\\s]+$/i.test(text);
+}
+function solveMath(text){
+    try { return eval(text.replace(/x/gi,'*').replace(/\^/g,'**')) } 
+    catch{return null}
+}
 
-async function fetchWiki(q){try{const r=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q)}`);const d=await r.json();return d.extract||null}catch{return null}}
+// Wikipedia fetch
+async function fetchWiki(query){
+    try{
+        const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        const data = await res.json();
+        return data.extract || null;
+    }catch{return null;}
+}
 
-async function fetchDuck(q){try{const r=await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_redirect=1`);const d=await r.json();if(!d.RelatedTopics||!d.RelatedTopics.length)return null;return d.RelatedTopics.slice(0,5).map(x=>'• '+x.Text).join('<br>')}catch{return null}}
-
+// BlixAI3M logic
 async function blixAI3M(text){
-  const lower=text.toLowerCase().trim();
-  if(lower==='tell me your code' || lower==='what is your code') return "sorry, I cannot tell you that, I don't even know that myself! 😆";
-  if(/^(hi|hello)$/.test(lower)) return 'Hello 👋';
-  if(isMath(text)){
-    const r=solveMath(text);
-    if(r!==null) return `🧮 ${text.replace(/x/gi,'*')} = ${r}`;
-  }
-  let q=text.replace(/^(what is|who is|what are|tell me about|explain)/i,'').trim();
-  const wiki=await fetchWiki(q);
-  if(wiki) return wiki;
-  const duck=await fetchDuck(text);
-  if(duck) return duck;
-  return 'I couldn\'t find anything useful 😅';
+    const lower = text.toLowerCase().trim();
+    // Special responses
+    if(lower==='tell me your code' || lower==='what is your code') return "sorry, I cannot tell you that, I don't even know that myself! 😆";
+    if(/^hi$|^hello$/i.test(lower)) return 'Hello 👋';
+
+    // Math
+    if(isMath(text)){
+        const r = solveMath(text);
+        if(r!==null) return `🧮 ${text.replace(/x/gi,'*')} = ${r}`;
+    }
+
+    // Clean Wikipedia query
+    let q = text.replace(/^(what is|who is|what are|tell me about|explain)/i,'').trim();
+    const wiki = await fetchWiki(q);
+    if(wiki) return wiki;
+
+    return "I couldn't find anything useful 😅";
 }
 
-send.onclick=async()=>{
-  const t=input.value.trim();
-  if(!t) return;
-  input.value='';
-  addMessage(t,'user');
-  if(model.value==='nano'){
-    const lower=t.toLowerCase().trim();
-    if(lower==='tell me your code' || lower==='what is your code') return addMessage("sorry, I cannot tell you that, I don't even know that myself! 😆",'ai');
-    if(/^(hi|hello)$/i.test(t)) return addMessage('Hello 👋','ai');
-    if(isMath(t)){const r=solveMath(t);if(r!==null)return addMessage('🧮 '+r,'ai')}
-    const w=await fetchWiki(t);
-    return addMessage(w||'I couldn\'t find that.','ai');
-  } else {
-    const a=await blixAI3M(t);
-    addMessage(a,'ai');
-  }
+// Send message
+send.onclick = async () => {
+    const t = input.value.trim();
+    if(!t) return;
+    input.value = '';
+    addMessage(t,'user');
+
+    if(model.value === 'nano'){
+        // BlixAI-Nano: Wikipedia+math simple
+        const lower = t.toLowerCase().trim();
+        if(lower==='tell me your code' || lower==='what is your code') return addMessage("sorry, I cannot tell you that, I don't even know that myself! 😆",'ai');
+        if(/^hi$|^hello$/i.test(t)) return addMessage('Hello 👋','ai');
+        if(isMath(t)){const r=solveMath(t);if(r!==null) return addMessage('🧮 '+r,'ai')}
+        const w = await fetchWiki(t);
+        return addMessage(w||"I couldn't find that.",'ai');
+    } else {
+        // BlixAI3M
+        const a = await blixAI3M(t);
+        addMessage(a,'ai');
+    }
 };
 
-input.addEventListener('keydown',e=>{if(e.key==='Enter')send.onclick()});
+input.addEventListener('keydown', e => { if(e.key==='Enter') send.onclick(); });
 </script>
+
 </body>
 </html>
