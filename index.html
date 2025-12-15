@@ -10,7 +10,7 @@
 body{margin:0;height:100vh;display:flex;flex-direction:column;background:#fff;color:#000;transition:.3s}
 body.dark{background:#121212;color:#fff}
 #top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px}
-#logo{height:40px}
+#logo{height:80px} /* Logo size */
 #dark-toggle{padding:8px 14px;border-radius:20px;border:none;background:#000;color:#fff;cursor:pointer}
 body.dark #dark-toggle{background:#fff;color:#000}
 #welcome{font-size:28px;font-weight:700;padding:20px}
@@ -30,7 +30,7 @@ body.dark select{background:#2c2c2c;color:#fff}
 <body>
 
 <div id="top-bar">
-  <img id="logo" src="https://uploads.onecompiler.io/446bh8s9g/447prm8ma/BlixAI-removebg-preview.png" alt="BlixAI Logo">
+  <img id="logo" src="https://uploads.onecompiler.io/446bh8s9g/447prm8ma/BlixAI-removebg-preview%20(1).png" alt="BlixAI Logo">
   <button id="dark-toggle">🌙</button>
 </div>
 <div id="welcome">What would you like to talk about?</div>
@@ -63,6 +63,7 @@ function addMessage(text,who){
   div.innerHTML=text;
   chat.appendChild(div);
   chat.scrollTop=chat.scrollHeight;
+  return div;
 }
 
 function isMath(t){return /^[0-9+\-*/x().^\s]+$/i.test(t)}
