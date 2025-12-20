@@ -138,7 +138,7 @@ async function fetchDuck(query){
 async function processMessage(userText, aiType){
     addMessage("You: " + userText,'user');
     let lower = userText.toLowerCase();
-    if(lower.includes("hi") || lower.includes("hello")){
+    if(/^\s*(hi|hello)[!.,]?\s*$/i.test(userText)){
         addMessage("AI: Hello",'ai'); return;
     }
     if(lower.includes("tell me your code") || lower.includes("what is your code")){
