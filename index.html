@@ -135,6 +135,10 @@ async function fetchDuck(query){
     } catch { return "I couldn't find anything useful 😅"; }
 }
 
+function cleanQuery(text){
+    return text.replace(/^\s*(what is|what are|who is|who are)\s+/i,'').trim();
+}
+
 async function processMessage(userText, aiType){
     addMessage("You: " + userText,'user');
     let lower = userText.toLowerCase();
@@ -144,17 +148,18 @@ async function processMessage(userText, aiType){
     if(lower.includes("tell me your code") || lower.includes("what is your code")){
         addMessage("AI: sorry, I cannot tell you that, I don't even know that myself! 😆",'ai'); return;
     }
+    let query = cleanQuery(userText);
     if(aiType==='nano'){
         let math = evaluateMath(userText);
         if(math){ addMessage("AI: "+math,'ai'); return; }
-        let wiki = await fetchWiki(userText);
+        let wiki = await fetchWiki(query);
         addMessage("AI: "+wiki.text,'ai',wiki.images);
     }
     if(aiType==='3m'){
         let math = evaluateMath(userText);
         if(math){ addMessage("AI: "+math,'ai'); return; }
-        let wiki = await fetchWiki(userText);
-        let duck = await fetchDuck(userText);
+        let wiki = await fetchWiki(query);
+        let duck = await fetchDuck(query);
         addMessage("AI: "+wiki.text+'\n'+duck,'ai',wiki.images);
     }
 }
